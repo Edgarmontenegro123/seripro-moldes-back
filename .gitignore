@@ -23,3 +23,6 @@ go.work.sum
 
 # env file
 .env
+/.idea/modules.xml
+/.idea/seripro-moldes-back.iml
+/.idea/vcs.xml

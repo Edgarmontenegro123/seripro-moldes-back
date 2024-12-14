@@ -1,19 +1,34 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/Edgarmontenegro123/seripro-moldes-back/config"
+	"github.com/Edgarmontenegro123/seripro-moldes-back/internal/db"
 )
 
 func main() {
-	port := "8080"
+	// Carga configuración
+	config.LoadEnv()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Bienvenido a Seripro moldes!")
-	})
-
-	fmt.Printf("Servidor corriendo en http://localhost:%s\n", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		fmt.Println("Error al iniciar el servidor: ", err)
+	// Conecta a MongoDB
+	if err := db.Connect(config.MongoURI); err != nil {
+		log.Fatalf("No se pudo conectar a MongoDB: %v", err)
 	}
+	defer db.Disconnect()
+
+	log.Println("Servidor corriendo... Presiona Ctrl+C para salir")
+
+	// Espera señal para salir
+	waitForExit()
+}
+
+func waitForExit() {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Apagando servidor...")
 }
